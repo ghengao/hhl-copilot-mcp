@@ -1,47 +1,115 @@
 {
-  "name": "hhl-copilot-mcp",
-  "displayName": "hhl-copilot-mcp",
-  "description": "Github Copilot MCP Client",
-  "version": "0.0.1",
-  "engines": {
-    "vscode": "^1.98.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [],
-  "main": "./dist/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "hhl-copilot-mcp.helloWorld",
-        "title": "Hello World"
-      }
-    ]
-  },
-  "scripts": {
-    "vscode:prepublish": "pnpm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
-  },
-  "devDependencies": {
-    "@types/vscode": "^1.98.0",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
-    "@typescript-eslint/eslint-plugin": "^8.25.0",
-    "@typescript-eslint/parser": "^8.25.0",
-    "eslint": "^9.21.0",
-    "typescript": "^5.7.3",
-    "ts-loader": "^9.5.2",
-    "webpack": "^5.98.0",
-    "webpack-cli": "^6.0.1",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
-  }
+    "name": "hhl-copilot-mcp",
+    "displayName": "HHL Copilot MCP Client",
+    "description": "VSCode extension as Model Context Protocol (MCP) client",
+    "version": "0.1.0",
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "mcpClient.reconnectAll",
+                "title": "Reconnect Copilot MCP Client"
+            }
+        ],
+        "chatParticipants": [
+            {
+                "id": "mcpClient.mcp",
+                "name": "mcp",
+                "isSticky": true,
+                "description": "Model Context Protocol (MCP) client",
+                "fullName": "Model Context Protocol Client",
+                "commands": []
+
+            }
+        ],
+        "configuration": {
+            "title": "Copilot MCP Client",
+            "properties": {
+                "mcpClient.servers": {
+                    "type": "array",
+                    "description": "List of MCP servers to connect to",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "type",
+                            "name",
+                            "enabled"
+                        ],
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "stdio",
+                                    "sse"
+                                ],
+                                "description": "Type of MCP server connection"
+                            },
+                            "name": {
+                                "type": "string",
+                                "description": "Name of the MCP server"
+                            },
+                            "enabled": {
+                                "type": "boolean",
+                                "description": "Whether this server is enabled",
+                                "default": true
+                            },
+                            "command": {
+                                "type": "string",
+                                "description": "Command to start the stdio server (for stdio type)"
+                            },
+                            "args": {
+                                "type": "array",
+                                "description": "Arguments for the stdio server command",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "url": {
+                                "type": "string",
+                                "description": "URL of the SSE server (for sse type)"
+                            }
+                        }
+                    },
+                    "default": []
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "pnpm run package",
+        "compile": "webpack",
+        "watch": "webpack --watch",
+        "package": "webpack --mode production --devtool hidden-source-map",
+        "compile-tests": "tsc -p . --outDir out",
+        "watch-tests": "tsc -p . -w --outDir out",
+        "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+        "lint": "eslint src",
+        "test": "vscode-test"
+    },
+    "devDependencies": {
+        "@types/mocha": "^10.0.10",
+        "@types/node": "20.x",
+        "@types/vscode": "^1.98.0",
+        "@typescript-eslint/eslint-plugin": "^8.25.0",
+        "@typescript-eslint/parser": "^8.25.0",
+        "@vscode/test-cli": "^0.0.10",
+        "@vscode/test-electron": "^2.4.1",
+        "eslint": "^9.21.0",
+        "ts-loader": "^9.5.2",
+        "typescript": "^5.7.3",
+        "webpack": "^5.98.0",
+        "webpack-cli": "^6.0.1"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.7.0",
+        "@vscode/chat-extension-utils": "0.0.0-alpha.5",
+        "sdk": "link:@types/@modelcontextprotocol/sdk"
+    }
 }

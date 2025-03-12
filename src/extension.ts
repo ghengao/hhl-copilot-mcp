@@ -1,26 +1,56 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
+import { MCPConnectionManager } from "./mcpConnectionManager";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+let connectionManager: MCPConnectionManager | undefined;
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "hhl-copilot-mcp" is now active!');
+export async function activate(context: vscode.ExtensionContext) {
+    console.log("MCP Client extension is now active");
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('hhl-copilot-mcp.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from hhl-copilot-mcp!');
-	});
+    try {
+        // Initialize connection manager
+        connectionManager = new MCPConnectionManager(context);
 
-	context.subscriptions.push(disposable);
+        // Initialize all MCP server connections
+        await connectionManager.initializeConnections();
+        await connectionManager.registerChatParticipant(context);
+
+        // Register commands and event handlers
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                "mcpClient.reconnectAll",
+                async () => {
+                    if (connectionManager) {
+                        await connectionManager.reconnectAll();
+                        vscode.window.showInformationMessage(
+                            "MCP servers reconnected"
+                        );
+                    }
+                }
+            ),
+
+            vscode.workspace.onDidChangeConfiguration(async (event) => {
+                if (
+                    event.affectsConfiguration("mcpClient") &&
+                    connectionManager
+                ) {
+                    // Reload connections when configuration changes
+                    await connectionManager.reconnectAll();
+                }
+            })
+        );
+        await connectionManager.registerAllTools(context);
+
+        vscode.window.showInformationMessage("MCP Client extension activated");
+    } catch (error) {
+        vscode.window.showErrorMessage(
+            `Failed to activate MCP Client: ${error}`
+        );
+    }
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate(): Thenable<void> | undefined {
+    if (connectionManager) {
+        return connectionManager.shutdown();
+    }
+    return undefined;
+}
