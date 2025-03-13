@@ -9,7 +9,7 @@
     "categories": [
         "Other"
     ],
-    "activationEvents": [],
+    "activationEvents": ["onStartupFinished"],
     "main": "./dist/extension.js",
     "contributes": {
         "commands": [
@@ -27,7 +27,87 @@
                 "fullName": "Model Context Protocol Client",
                 "commands": []
 
-            }
+            },
+            {
+				"id": "chat-tools-sample.catTools",
+				"fullName": "Cat (Tools)",
+				"name": "catTools",
+				"description": "I use tools, implemented using @vscode/chat-extension-utils, and am also a cat",
+				"isSticky": true,
+				"commands": [
+					{
+						"name": "all",
+						"description": "Use all registered tools. By default, only this extension's tools are used."
+					}
+				]
+			}
+        ],
+        "languageModelTools": [
+            {
+				"name": "mcp_Demo_add",
+				"toolReferenceName": "add",
+				"displayName": "add",
+				"modelDescription": "Return result of adding two numbers, a + b",
+                "tags": [
+                    "editors",
+                    "mcp"
+                ],
+				"inputSchema": {
+					"type": "object",
+					"properties": {
+						"a": {
+							"type": "number"
+						},
+                        "b": {
+                            "type": "number"
+                        }
+					},
+                    "required": ["a", "b"]
+				}
+			},
+            {
+				"name": "mcp_Demo_multiply",
+				"toolReferenceName": "multiply",
+				"displayName": "multiply",
+				"modelDescription": "Return result of multiply two numbers, a * b",
+                "tags": [
+                    "editors",
+                    "mcp"
+                ],
+				"inputSchema": {
+					"type": "object",
+					"properties": {
+						"a": {
+							"type": "number"
+						},
+                        "b": {
+                            "type": "number"
+                        }
+					},
+                    "required": ["a", "b"]
+				}
+			},
+            {
+				"name": "chat-tools-sample_tabCount",
+				"tags": [
+					"editors",
+					"chat-tools-sample"
+				],
+				"toolReferenceName": "tabCount",
+				"displayName": "Tab Count",
+				"modelDescription": "The number of active tabs in a tab group",
+				"icon": "$(files)",
+				"inputSchema": {
+					"type": "object",
+					"properties": {
+						"tabGroup": {
+							"type": "number",
+							"description": "The index of the tab group to check. This is optional- if not specified, the active tab group will be checked.",
+							"default": 0
+						}
+					}
+				}
+			}
         ],
         "configuration": {
             "title": "Copilot MCP Client",

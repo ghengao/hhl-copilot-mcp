@@ -79,23 +79,20 @@ export class MCPConnectionManager {
         }
 
         // Check if tools is an array, otherwise get its entries
-        const toolsArray = Array.isArray(tools) ? tools : Object.values(tools);
+        // const toolsArray = Array.isArray(tools) ? tools : Object.values(tools);
 
-        for (const tool of toolsArray) {
+        for (const tool of tools.tools) {
             // Create a new MCP tool
             let client = conn.getClient();
             if (!client) {
                 continue;
             }
+            const name = `mcp_${conn.name}_${tool.name}`;
             const mcpTool = new McpTool(client, tool);
 
             // Register the tool
-            context.subscriptions.push(
-                vscode.lm.registerTool(
-                    `mcp_${conn.name}_${mcpTool.name}`,
-                    mcpTool
-                )
-            );
+            console.log(`Registering tool: ${name}`, mcpTool);
+            context.subscriptions.push(vscode.lm.registerTool(name, mcpTool));
         }
     }
     public async registerAllTools(
@@ -147,12 +144,30 @@ export class MCPConnectionManager {
             stream: vscode.ChatResponseStream,
             token: vscode.CancellationToken
         ) => {
-            const tools = vscode.lm.tools;
+            if (request.command === "list") {
+                stream.markdown(
+                    `Available tools: ${vscode.lm.tools
+                        .map((tool) => tool.name)
+                        .join(", ")}\n\n`
+                );
+                return;
+            }
+            const prompt = `
+You are a helpful assistant that can utilize all the tools available to you to anser user's queries. Following are the guidelines you should follow when use these tools:
+- Always use tools when the tools can directly answer the user's query or perform the task user is asking
+- If multiple tools are needed to answer the query or perform the task, use your best judgment to determine the order of tool usage.
+- Only if no tools can help you answer the query or perform the task, you can use your own knowledge to answer the query or perform the task.
+`;
+
+            const tools = vscode.lm.tools.filter((tools) =>
+                tools.tags.includes("mcp")
+            );
+            // const tools = vscode.lm.tools.filter(tools => !tools.tags.includes('ddd'));
             const libResult = chatUtils.sendChatParticipantRequest(
                 request,
                 chatContext,
                 {
-                    prompt: request.prompt,
+                    prompt: prompt,
                     responseStreamOptions: {
                         stream,
                         references: true,
@@ -163,7 +178,9 @@ export class MCPConnectionManager {
                 token
             );
 
-            return await libResult.result;
+            const output = await libResult.result;
+
+            return output;
         };
 
         // Register chat participant

@@ -24,11 +24,20 @@ export class McpTool implements vscode.LanguageModelChatTool {
     }
 
     async prepareInvocation(
-        options: vscode.LanguageModelToolInvocationOptions<any>
-    ): Promise<{ confirmationMessage?: string; invocationMessage?: string }> {
+        options: vscode.LanguageModelToolInvocationOptions<any>, _token: vscode.CancellationToken
+    ): Promise<{ invocationMessage: string; confirmationMessages: any }> {
+		const confirmationMessages = {
+			title: 'Count the number of open tabs',
+			message: new vscode.MarkdownString(
+				`Count the number of open tabs?` +
+				(options.input.tabGroup !== undefined
+					? ` in tab group ${options.input.tabGroup}`
+					: '')
+			),
+		};
         return {
-            confirmationMessage: `Allow tool "${this.tool.name}" to run?`,
             invocationMessage: `Running tool "${this.tool.name}"...`,
+            confirmationMessages,
         };
     }
 
